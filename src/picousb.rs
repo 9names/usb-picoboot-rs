@@ -418,11 +418,11 @@ impl<T: UsbContext> PicobootConnection<T> {
         Ok(buf)
     }
 
-    fn bulk_write(&mut self, mut buf: Vec<u8>, check: bool) -> rusb::Result<()> {
+    fn bulk_write(&mut self, buf: Vec<u8>, check: bool) -> rusb::Result<()> {
         let timeout = std::time::Duration::from_secs(5);
         let len = self
             .handle
-            .write_bulk(self.out_addr, &mut buf, timeout)
+            .write_bulk(self.out_addr, &buf, timeout)
             .expect("write_bulk failed");
 
         if check && len != buf.len() {
@@ -464,10 +464,12 @@ impl<T: UsbContext> PicobootConnection<T> {
         Ok(res.unwrap())
     }
 
+    #[allow(dead_code)]
     pub fn access_not_exclusive(&mut self) -> rusb::Result<()> {
         self.set_exclusive_access(0)
     }
 
+    #[allow(dead_code)]
     pub fn access_exclusive(&mut self) -> rusb::Result<()> {
         self.set_exclusive_access(1)
     }
@@ -514,6 +516,7 @@ impl<T: UsbContext> PicobootConnection<T> {
         self.cmd(cmd, vec![])
     }
 
+    #[allow(dead_code)]
     pub fn enter_xip(&mut self) -> rusb::Result<()> {
         let args = [0; 16];
         let cmd = PicobootCmd::new(PicobootCmdId::EnterCmdXip, 0, 0, args);
@@ -535,7 +538,7 @@ impl<T: UsbContext> PicobootConnection<T> {
             .expect("failed to clear out addr halt");
 
         let timeout = std::time::Duration::from_secs(1);
-        let mut buf = [0u8; 0];
+        let buf = [0u8; 0];
         let _res = self
             .handle
             .write_control(
@@ -543,9 +546,8 @@ impl<T: UsbContext> PicobootConnection<T> {
                 0b01000001,
                 0,
                 self.iface.into(),
-                &mut buf,
-                timeout,
-            )
+                &buf,
+                timeout)
             .expect("failed to reset interface");
     }
 
