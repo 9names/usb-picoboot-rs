@@ -1,7 +1,6 @@
 // This is a barebones implementation of PICOBOOT communication in rust
 // This is intended only to work with the RP2040, but could work with new chips with extra modifications
 
-use bincode;
 use rusb::{Device, DeviceDescriptor, DeviceHandle, Direction, TransferType, UsbContext};
 use serde::{Deserialize, Serialize};
 
@@ -158,8 +157,8 @@ struct PicobootRangeCmd {
 impl PicobootRangeCmd {
     pub fn ser(addr: u32, size: u32) -> [u8; 16] {
         let c = PicobootRangeCmd {
-            addr: addr,
-            size: size,
+            addr,
+            size,
             _unused: 0,
         };
         bincode::serialize(&c)
@@ -182,9 +181,9 @@ struct PicobootRebootCmd {
 impl PicobootRebootCmd {
     pub fn ser(pc: u32, sp: u32, delay: u32) -> [u8; 16] {
         let c = PicobootRebootCmd {
-            pc: pc,
-            sp: sp,
-            delay: delay,
+            pc,
+            sp,
+            delay,
             _unused: 0,
         };
         bincode::serialize(&c)
@@ -248,10 +247,10 @@ impl PicobootCmd {
             magic: PICOBOOT_MAGIC,
             token: 0,
             cmd_id: cmd_id as u8,
-            cmd_size: cmd_size,
+            cmd_size,
             _unused: 0,
-            transfer_len: transfer_len,
-            args: args,
+            transfer_len,
+            args,
         }
     }
 }
@@ -326,7 +325,7 @@ impl<T: UsbContext> PicobootConnection<T> {
                     _ => false,
                 };
 
-                if !handle.set_active_configuration(cfg).is_ok() {
+                if handle.set_active_configuration(cfg).is_err() {
                     println!("Warning: could not set USB active configuration");
                 }
                 handle
@@ -336,22 +335,22 @@ impl<T: UsbContext> PicobootConnection<T> {
                     .set_alternate_setting(iface, setting)
                     .expect("could not set alt setting");
 
-                return PicobootConnection {
+                PicobootConnection {
                     context: ctx,
-                    device: device,
-                    desc: desc,
-                    handle: handle,
+                    device,
+                    desc,
+                    handle,
 
-                    cfg: cfg,
-                    iface: iface,
-                    setting: setting,
-                    in_addr: in_addr,
-                    out_addr: out_addr,
+                    cfg,
+                    iface,
+                    setting,
+                    in_addr,
+                    out_addr,
 
                     cmd_token: 1,
-                    has_kernel_driver: has_kernel_driver,
-                    target_id: target_id,
-                };
+                    has_kernel_driver,
+                    target_id,
+                }
             }
             None => panic!("Could not find picoboot device."),
         }
@@ -400,7 +399,7 @@ impl<T: UsbContext> PicobootConnection<T> {
             }
         }
 
-        return None;
+        None
     }
 
     fn bulk_read(&mut self, buf_size: usize, check: bool) -> rusb::Result<Vec<u8>> {
@@ -435,7 +434,7 @@ impl<T: UsbContext> PicobootConnection<T> {
 
     fn cmd(&mut self, mut cmd: PicobootCmd, buf: Vec<u8>) -> rusb::Result<Vec<u8>> {
         cmd.token = self.cmd_token;
-        self.cmd_token = self.cmd_token + 1;
+        self.cmd_token += 1;
         let cmd = cmd;
 
         // write command
@@ -481,32 +480,32 @@ impl<T: UsbContext> PicobootConnection<T> {
         let mut args = [0; 16];
         args[0] = exclusive;
         let cmd = PicobootCmd::new(PicobootCmdId::ExclusiveAccess, 1, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn reboot(&mut self, pc: u32, sp: u32, delay: u32) -> rusb::Result<()> {
         let args = PicobootRebootCmd::ser(pc, sp, delay);
         let cmd = PicobootCmd::new(PicobootCmdId::Reboot, 12, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn reboot2_normal(&mut self, delay: u32) -> rusb::Result<()> {
         let flags: u32 = 0x0; // Normal boot
         let args = PicobootReboot2Cmd::ser(flags, delay, 0, 0);
         let cmd = PicobootCmd::new(PicobootCmdId::Reboot2, 0x10, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn flash_erase(&mut self, addr: u32, size: u32) -> rusb::Result<()> {
         let args = PicobootRangeCmd::ser(addr, size);
         let cmd = PicobootCmd::new(PicobootCmdId::FlashErase, 8, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn flash_write(&mut self, addr: u32, buf: Vec<u8>) -> rusb::Result<()> {
         let args = PicobootRangeCmd::ser(addr, buf.len() as u32);
         let cmd = PicobootCmd::new(PicobootCmdId::Write, 8, buf.len() as u32, args);
-        Ok(self.cmd(cmd, buf).map(|_| ())?)
+        self.cmd(cmd, buf).map(|_| ())
     }
 
     pub fn flash_read(&mut self, addr: u32, size: u32) -> rusb::Result<Vec<u8>> {
@@ -518,13 +517,13 @@ impl<T: UsbContext> PicobootConnection<T> {
     pub fn enter_xip(&mut self) -> rusb::Result<()> {
         let args = [0; 16];
         let cmd = PicobootCmd::new(PicobootCmdId::EnterCmdXip, 0, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn exit_xip(&mut self) -> rusb::Result<()> {
         let args = [0; 16];
         let cmd = PicobootCmd::new(PicobootCmdId::ExitXip, 0, 0, args);
-        Ok(self.cmd(cmd, vec![]).map(|_| ())?)
+        self.cmd(cmd, vec![]).map(|_| ())
     }
 
     pub fn reset_interface(&mut self) {
