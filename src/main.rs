@@ -1,6 +1,10 @@
 mod picoboot_cmds;
 mod picousb;
-use picousb::{PICO_FLASH_START, PICO_PAGE_SIZE, PICO_SECTOR_SIZE, PICO_STACK_POINTER};
+
+pub const PICO_PAGE_SIZE: usize = 256;
+pub const PICO_SECTOR_SIZE: u32 = 4096;
+pub const PICO_FLASH_START: u32 = 0x10000000;
+pub const PICO_STACK_POINTER: u32 = 0x20042000;
 
 use uf2_decode::convert_from_uf2;
 

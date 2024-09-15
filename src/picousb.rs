@@ -9,10 +9,6 @@ use rusb::{Device, DeviceDescriptor, DeviceHandle, Direction, TransferType, UsbC
 // see https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf
 // section 2.8.5 for details on PICOBOOT interface
 
-pub const PICO_PAGE_SIZE: usize = 256;
-pub const PICO_SECTOR_SIZE: u32 = 4096;
-pub const PICO_FLASH_START: u32 = 0x10000000;
-pub const PICO_STACK_POINTER: u32 = 0x20042000;
 const PICOBOOT_VID: u16 = 0x2E8A;
 const PICOBOOT_PID_RP2040: u16 = 0x0003;
 const PICOBOOT_PID_RP2350: u16 = 0x000f;
