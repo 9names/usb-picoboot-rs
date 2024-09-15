@@ -1,5 +1,6 @@
 mod picoboot_cmds;
 mod picousb;
+mod piconusb;
 
 pub const PICO_PAGE_SIZE: usize = 256;
 pub const PICO_SECTOR_SIZE: u32 = 4096;
@@ -28,10 +29,12 @@ fn uf2_pages(bytes: Vec<u8>) -> Result<Vec<Vec<u8>>, ()> {
 }
 
 fn main() {
+    // create rusb connection object
     let ctx = rusb::Context::new().expect("Could not initialize libusb");
-    
-    // create connection object
     let mut conn = picousb::PicobootConnection::new(ctx);
+
+    // create nusb connection object
+    // let mut conn = piconusb::PicobootConnection::new().unwrap();
 
     println!("Connected to PicoBoot!");
 
