@@ -43,7 +43,7 @@ fn main() {
             println!("claimed access");
             conn.exit_xip().expect("failed to exit from xip mode");
 
-            let mut erased_sectors = vec!();
+            let mut erased_sectors = vec![];
 
             for (i, page) in fw_pages.iter().enumerate() {
                 let addr = (i * PICO_PAGE_SIZE) as u32 + PICO_FLASH_START;
@@ -55,7 +55,8 @@ fn main() {
                 if !erased_sectors.contains(&sector_addr) {
                     // Sector containing this page hasn't been erased yet, erase it now
                     println!("\terasing flash");
-                    conn.flash_erase(addr, PICO_SECTOR_SIZE).expect("failed to erase flash");
+                    conn.flash_erase(addr, PICO_SECTOR_SIZE)
+                        .expect("failed to erase flash");
                     println!("\terase flash success");
                     erased_sectors.push(sector_addr);
                 }
