@@ -6,6 +6,12 @@ pub const PICO_SECTOR_SIZE: u32 = 4096;
 pub const PICO_FLASH_START: u32 = 0x10000000;
 pub const PICO_STACK_POINTER: u32 = 0x20042000;
 
+#[derive(Debug, Clone, Copy)]
+pub enum TargetID {
+    Rp2040,
+    Rp2350,
+}
+
 use uf2_decode::convert_from_uf2;
 
 fn uf2_pages(bytes: Vec<u8>) -> Result<Vec<Vec<u8>>, ()> {
@@ -31,8 +37,8 @@ fn main() {
 
     // firmware in a big vector of u8's
     let fw_name = match conn.get_device_type() {
-        Some(picousb::TargetID::Rp2040) => "fw_blink.uf2",
-        Some(picousb::TargetID::Rp2350) => "fw_blink_rp2350.uf2",
+        Some(TargetID::Rp2040) => "fw_blink.uf2",
+        Some(TargetID::Rp2350) => "fw_blink_rp2350.uf2",
         None => panic!("No known RP device connected"),
     };
     let fw = std::fs::read(fw_name).unwrap();
@@ -88,11 +94,11 @@ fn main() {
     println!("sector success!!!");
 
     match conn.get_device_type().expect("No known RP chip found") {
-        picousb::TargetID::Rp2040 => {
+        TargetID::Rp2040 => {
             conn.reboot(0x0, PICO_STACK_POINTER, 500)
                 .expect("failed to reboot device"); // sp is SRAM_END_RP2040
         }
-        picousb::TargetID::Rp2350 => {
+        TargetID::Rp2350 => {
             conn.reboot2_normal(500).expect("failed to reboot device")
         }
     }

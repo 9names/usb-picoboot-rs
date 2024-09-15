@@ -2,6 +2,7 @@
 // This is intended only to work with the RP2040, but could work with new chips with extra modifications
 
 use crate::picoboot_cmds::*;
+use crate::TargetID;
 use rusb::{Device, DeviceDescriptor, DeviceHandle, Direction, TransferType, UsbContext};
 // see https://github.com/raspberrypi/picotool/blob/master/main.cpp#L4173
 // for loading firmware over a connection
@@ -12,12 +13,6 @@ use rusb::{Device, DeviceDescriptor, DeviceHandle, Direction, TransferType, UsbC
 const PICOBOOT_VID: u16 = 0x2E8A;
 const PICOBOOT_PID_RP2040: u16 = 0x0003;
 const PICOBOOT_PID_RP2350: u16 = 0x000f;
-
-#[derive(Debug, Clone, Copy)]
-pub enum TargetID {
-    Rp2040,
-    Rp2350,
-}
 
 fn open_device<T: UsbContext>(
     ctx: &mut T,
