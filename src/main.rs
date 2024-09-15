@@ -1,3 +1,4 @@
+mod picoboot_cmds;
 mod picousb;
 use picousb::{PICO_FLASH_START, PICO_PAGE_SIZE, PICO_SECTOR_SIZE, PICO_STACK_POINTER};
 
