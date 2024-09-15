@@ -541,13 +541,7 @@ impl<T: UsbContext> PicobootConnection<T> {
         let buf = [0u8; 0];
         let _res = self
             .handle
-            .write_control(
-                0b01000001,
-                0b01000001,
-                0,
-                self.iface.into(),
-                &buf,
-                timeout)
+            .write_control(0b01000001, 0b01000001, 0, self.iface.into(), &buf, timeout)
             .expect("failed to reset interface");
     }
 
